@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Display App</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* View Toggle Button */
+        .toggle-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .toggle-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .toggle-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* Shopkeeper View Styles */
+        .shopkeeper-view {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .shopkeeper-view h2 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            color: #555;
+        }
+        .product-form div {
+            margin-bottom: 15px;
+        }
+        .product-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .product-form input[type="text"],
+        .product-form input[type="number"],
+        .product-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .product-form textarea {
+            resize: vertical;
+        }
+        .product-form button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .product-form button:hover {
+            background-color: #1e7e34;
+        }
+
+        /* Shopkeeper Product List */
+        .shopkeeper-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        .shopkeeper-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        .shopkeeper-list li img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            margin-right: 15px;
+            border-radius: 4px;
+        }
+        .shopkeeper-list .product-info {
+            flex-grow: 1;
+        }
+        .shopkeeper-list .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .shopkeeper-list .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        /* Customer View Styles (Product Grid) */
+        .customer-view {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 20px 0;
+        }
+        .product-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+        }
+        .product-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            display: block;
+        }
+        .product-details {
+            padding: 15px;
+        }
+        .product-details h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .price-info {
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+        .mrp {
+            color: #888;
+            text-decoration: line-through;
+            margin-right: 10px;
+        }
+        .discounted-price {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        .discount-badge {
+            display: inline-block;
+            background-color: #ffc107;
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .other-details {
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        /* Utility Class for Hiding */
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toggle-container">
+        <button id="toggleViewBtn" class="toggle-btn"></button>
+    </div>
+
+    <div id="shopkeeperView" class="shopkeeper-view hidden">
+        <h1>Shopkeeper Product Management</h1>
+        <p>Current products: <span id="productCount">0</span>/20</p>
+        
+        <h2>Add New Product</h2>
+        <form id="productForm" class="product-form">
+            <div>
+                <label for="productName">Product Name:</label>
+                <input type="text" id="productName" required>
+            </div>
+            <div>
+                <label for="productImage">Image URL (e.g., https://example.com/image.jpg):</label>
+                <input type="text" id="productImage" value="https://via.placeholder.com/150" required>
+            </div>
+            <div>
+                <label for="mrp">MRP ($):</label>
+                <input type="number" id="mrp" min="0.01" step="0.01" required>
+            </div>
+            <div>
+                <label for="discountedPrice">Discounted Price ($):</label>
+                <input type="number" id="discountedPrice" min="0" step="0.01" required>
+            </div>
+            <div>
+                <label for="discountPercentage">Discount Percentage:</label>
+                <input type="text" id="discountPercentage" readonly placeholder="0.00%">
+            </div>
+            <div>
+                <label for="otherDetails">Other Offers / Details:</label>
+                <textarea id="otherDetails"></textarea>
+            </div>
+            <button type="submit" id="addProductBtn">Add Product</button>
+        </form>
+
+        <h2>Product List</h2>
+        <ul id="shopkeeperProductList" class="shopkeeper-list">
+            </ul>
+    </div>
+
+    <div id="customerView" class="customer-view">
+        <h1>Daily Discounted Products</h1>
+        <div id="productGrid" class="product-grid">
+            </div>
+    </div>
+
+    <script>
+        const MAX_PRODUCTS = 20;
+        const STORAGE_KEY = 'shopProducts';
+
+        // DOM elements
+        const shopkeeperView = document.getElementById('shopkeeperView');
+        const customerView = document.getElementById('customerView');
+        const toggleViewBtn = document.getElementById('toggleViewBtn');
+        const productForm = document.getElementById('productForm');
+        const mrpInput = document.getElementById('mrp');
+        const discountedPriceInput = document.getElementById('discountedPrice');
+        const discountPercentageInput = document.getElementById('discountPercentage');
+        const shopkeeperProductList = document.getElementById('shopkeeperProductList');
+        const productGrid = document.getElementById('productGrid');
+        const productCountSpan = document.getElementById('productCount');
+
+        let products = [];
+        let isShopkeeperView = false;
+
+        // --- Core Functions ---
+
+        /**
+         * Loads products from localStorage.
+         */
+        function loadProducts() {
+            const storedProducts = localStorage.getItem(STORAGE_KEY);
+            if (storedProducts) {
+                try {
+                    products = JSON.parse(storedProducts);
+                } catch (e) {
+                    console.error("Error parsing localStorage data:", e);
+                    products = []; // Reset on error
+                }
+            } else {
+                products = [];
+            }
+        }
+
+        /**
+         * Saves the current products array to localStorage.
+         */
+        function saveProducts() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+            updateProductCount();
+        }
+
+        /**
+         * Calculates discount percentage based on MRP and discounted price.
+         * @param {number} mrp - The original MRP.
+         * @param {number} discountedPrice - The final selling price.
+         * @returns {number} The discount percentage (e.g., 25.5 for 25.5%).
+         */
+        function calculateDiscount(mrp, discountedPrice) {
+            if (mrp > 0 && discountedPrice < mrp) {
+                return ((mrp - discountedPrice) / mrp) * 100;
+            }
+            return 0;
+        }
+
+        // --- View Rendering ---
+
+        /**
+         * Renders the product list for the Shopkeeper's view.
+         */
+        function renderShopkeeperList() {
+            shopkeeperProductList.innerHTML = '';
+            products.forEach((product, index) => {
+                const li = document.createElement('li');
+                li.dataset.index = index;
+                
+                const percentage = calculateDiscount(product.mrp, product.discountedPrice).toFixed(2);
+                
+                li.innerHTML = `
+                    <img src="${product.imageURL}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/50'">
+                    <div class="product-info">
+                        <strong>${product.name}</strong><br>
+                        MRP: $${product.mrp.toFixed(2)} | Disc. Price: $${product.discountedPrice.toFixed(2)} | **${percentage}% OFF**
+                    </div>
+                    <button class="delete-btn" data-index="${index}">Delete</button>
+                `;
+                shopkeeperProductList.appendChild(li);
+            });
+        }
+
+        /**
+         * Renders the product grid for the Customer's view.
+         */
+        function renderCustomerGrid() {
+            productGrid.innerHTML = '';
+            if (products.length === 0) {
+                productGrid.innerHTML = '<p style="text-align: center; grid-column: 1 / -1;">No discounted products available today. Check back tomorrow!</p>';
+                return;
+            }
+
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.classList.add('product-card');
+
+                const percentage = calculateDiscount(product.mrp, product.discountedPrice).toFixed(0); // Round down for badge
+                
+                card.innerHTML = `
+                    <img src="${product.imageURL}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/200'">
+                    <div class="product-details">
+                        <h3>${product.name}</h3>
+                        <div class="price-info">
+                            <span class="mrp">$${product.mrp.toFixed(2)}</span>
+                            <span class="discounted-price">$${product.discountedPrice.toFixed(2)}</span>
+                            <span class="discount-badge">${percentage}% OFF</span>
+                        </div>
+                        <p class="other-details">${product.otherDetails || 'No additional offers.'}</p>
+                    </div>
+                `;
+                productGrid.appendChild(card);
+            });
+        }
+
+        /**
+         * Updates the display for the total number of products.
+         */
+        function updateProductCount() {
+            productCountSpan.textContent = products.length;
+        }
+
+        // --- Event Handlers ---
+
+        /**
+         * Toggles between the shopkeeper and customer views.
+         */
+        function toggleView() {
+            isShopkeeperView = !isShopkeeperView;
+            if (isShopkeeperView) {
+                shopkeeperView.classList.remove('hidden');
+                customerView.classList.add('hidden');
+                toggleViewBtn.textContent = 'Switch to Customer View';
+                renderShopkeeperList();
+            } else {
+                shopkeeperView.classList.add('hidden');
+                customerView.classList.remove('hidden');
+                toggleViewBtn.textContent = 'Switch to Shopkeeper View';
+                renderCustomerGrid();
+            }
+        }
+
+        /**
+         * Handles the form submission to add a new product.
+         * @param {Event} e - The form submission event.
+         */
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            if (products.length >= MAX_PRODUCTS) {
+                alert(`Cannot add more than ${MAX_PRODUCTS} products.`);
+                return;
+            }
+
+            const mrp = parseFloat(mrpInput.value);
+            const discountedPrice = parseFloat(discountedPriceInput.value);
+
+            if (discountedPrice > mrp) {
+                alert("Discounted Price cannot be higher than MRP.");
+                return;
+            }
+
+            const newProduct = {
+                id: Date.now(), // Simple unique ID
+                name: document.getElementById('productName').value.trim(),
+                imageURL: document.getElementById('productImage').value.trim() || 'https://via.placeholder.com/150',
+                mrp: mrp,
+                discountedPrice: discountedPrice,
+                otherDetails: document.getElementById('otherDetails').value.trim()
+            };
+
+            products.unshift(newProduct); // Add to the start
+            saveProducts();
+            renderShopkeeperList();
+            productForm.reset();
+            discountPercentageInput.value = '0.00%'; // Clear percentage field
+            
+            // Re-run discount calculation setup to clear the form fields
+            setupDiscountCalculation(); 
+        }
+
+        /**
+         * Deletes a product by index from the shopkeeper list.
+         * @param {number} index - The index of the product to delete.
+         */
+        function deleteProduct(index) {
+            products.splice(index, 1);
+            saveProducts();
+            renderShopkeeperList();
+        }
+        
+        /**
+         * Event listener for the delete button in the shopkeeper list.
+         */
+        shopkeeperProductList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-btn')) {
+                const index = parseInt(e.target.dataset.index);
+                if (!isNaN(index)) {
+                    deleteProduct(index);
+                }
+            }
+        });
+
+        /**
+         * Sets up the real-time discount percentage calculation.
+         */
+        function setupDiscountCalculation() {
+            const inputs = [mrpInput, discountedPriceInput];
+            
+            inputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    const mrp = parseFloat(mrpInput.value);
+                    const discountedPrice = parseFloat(discountedPriceInput.value);
+                    
+                    if (isNaN(mrp) || isNaN(discountedPrice) || mrp <= 0) {
+                        discountPercentageInput.value = '0.00%';
+                        return;
+                    }
+                    
+                    if (discountedPrice > mrp) {
+                        // Optional: Visually indicate an error
+                        discountPercentageInput.value = 'ERROR';
+                        return;
+                    }
+
+                    const percentage = calculateDiscount(mrp, discountedPrice).toFixed(2);
+                    discountPercentageInput.value = `${percentage}%`;
+                });
+            });
+        }
+
+        // --- Initialization ---
+
+        /**
+         * Initializes the application on page load.
+         */
+        function init() {
+            loadProducts();
+            updateProductCount();
+            setupDiscountCalculation();
+            
+            // Set up event listeners
+            toggleViewBtn.addEventListener('click', toggleView);
+            productForm.addEventListener('submit', handleFormSubmit);
+
+            // Default state: Customer View
+            isShopkeeperView = true; // Set to opposite, so toggleView sets it correctly
+            toggleView();
+        }
+
+        // Run initialization
+        init();
+
+    </script>
+</body>
+</html>
